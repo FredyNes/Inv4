@@ -3,151 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guardar Datos Directamente</title>
+    <title>Guardar Datos en GitHub</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
         }
         .container {
             max-width: 800px;
             margin: 0 auto;
-        }
-        form {
-            background: #f4f4f4;
+            background: white;
             padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        input, button {
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea, select {
+            width: 100%;
             padding: 8px;
-            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 150px;
+            font-family: monospace;
         }
         button {
-            background: #4CAF50;
+            background-color: #3498db;
             color: white;
             border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
             cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result {
             margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
         }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
+        .success {
+            background-color: #e8f5e9;
+            border-left-color: #2ecc71;
         }
-        th {
-            background-color: #4CAF50;
-            color: white;
+        .error {
+            background-color: #ffebee;
+            border-left-color: #e74c3c;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Guardar Datos Directamente</h1>
+        <h1>Guardar Datos en GitHub</h1>
         
-        <form id="dataForm">
-            <h2>Añadir Nuevo Registro</h2>
-            <div>
-                <label for="nombre">Nombre:</label>
-                <input type="text" id="nombre" required>
-            </div>
-            <div>
-                <label for="email">Email:</label>
-                <input type="email" id="email" required>
-            </div>
-            <div>
-                <label for="edad">Edad:</label>
-                <input type="number" id="edad" min="1">
-            </div>
-            <button type="submit">Guardar</button>
-        </form>
-
-        <h2>Registros Guardados</h2>
-        <table id="dataTable">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Email</th>
-                    <th>Edad</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Los datos se añadirán aquí dinámicamente -->
-            </tbody>
-        </table>
+        <div class="form-group">
+            <label for="filename">Nombre del archivo (sin extensión):</label>
+            <input type="text" id="filename" placeholder="ejemplo" value="datos">
+        </div>
+        
+        <div class="form-group">
+            <label for="data">Datos (JSON):</label>
+            <textarea id="data">{
+    "usuarios": [
+        {
+            "id": 1,
+            "nombre": "Ejemplo",
+            "email": "ejemplo@test.com"
+        }
+    ]
+}</textarea>
+        </div>
+        
+        <button id="saveBtn">Guardar en GitHub</button>
+        <button id="loadBtn">Cargar desde GitHub</button>
+        
+        <div id="result" class="result" style="display: none;"></div>
     </div>
 
     <script>
-        document.getElementById('dataForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+        const API_URL = 'http://localhost:3000/api'; // Cambiar en producción
+        
+        document.getElementById('saveBtn').addEventListener('click', async () => {
+            const filename = document.getElementById('filename').value + '.json';
+            const dataText = document.getElementById('data').value;
             
-            // Obtener valores del formulario
-            const nombre = document.getElementById('nombre').value;
-            const email = document.getElementById('email').value;
-            const edad = document.getElementById('edad').value;
-            
-            // Añadir nueva fila a la tabla
-            const tableBody = document.querySelector('#dataTable tbody');
-            const newRow = tableBody.insertRow();
-            
-            newRow.innerHTML = `
-                <td>${nombre}</td>
-                <td>${email}</td>
-                <td>${edad}</td>
-                <td><button onclick="eliminarFila(this)">Eliminar</button></td>
-            `;
-            
-            // Limpiar el formulario
-            this.reset();
-            
-            // Guardar en localStorage
-            guardarEnLocalStorage();
-        });
-
-        function eliminarFila(boton) {
-            const fila = boton.closest('tr');
-            fila.remove();
-            guardarEnLocalStorage();
-        }
-
-        function guardarEnLocalStorage() {
-            const filas = document.querySelectorAll('#dataTable tbody tr');
-            const datos = [];
-            
-            filas.forEach(fila => {
-                const celdas = fila.querySelectorAll('td');
-                datos.push({
-                    nombre: celdas[0].textContent,
-                    email: celdas[1].textContent,
-                    edad: celdas[2].textContent
-                });
-            });
-            
-            localStorage.setItem('datosGuardados', JSON.stringify(datos));
-        }
-
-        // Cargar datos al iniciar
-        window.addEventListener('load', function() {
-            const datosGuardados = localStorage.getItem('datosGuardados');
-            if (datosGuardados) {
-                const datos = JSON.parse(datosGuardados);
-                const tableBody = document.querySelector('#dataTable tbody');
+            try {
+                const data = JSON.parse(dataText);
+                const resultDiv = document.getElementById('result');
                 
-                datos.forEach(item => {
-                    const newRow = tableBody.insertRow();
-                    newRow.innerHTML = `
-                        <td>${item.nombre}</td>
-                        <td>${item.email}</td>
-                        <td>${item.edad}</td>
-                        <td><button onclick="eliminarFila(this)">Eliminar</button></td>
-                    `;
+                const response = await fetch(`${API_URL}/save`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ filename, data })
                 });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <h3>¡Éxito!</h3>
+                        <p>Datos guardados correctamente en GitHub.</p>
+                        <p>Archivo: ${filename}</p>
+                        <a href="https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/main/data/${filename}" target="_blank">Ver en GitHub</a>
+                    `;
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>Error</h3>
+                        <p>${result.message}</p>
+                        <pre>${JSON.stringify(result.error, null, 2)}</pre>
+                    `;
+                    resultDiv.className = 'result error';
+                }
+                
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                alert('Error en el formato JSON: ' + error.message);
+            }
+        });
+        
+        document.getElementById('loadBtn').addEventListener('click', async () => {
+            const filename = document.getElementById('filename').value + '.json';
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                const response = await fetch(`${API_URL}/read/${filename}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('data').value = JSON.stringify(result.data, null, 2);
+                    resultDiv.innerHTML = `
+                        <h3>Datos cargados</h3>
+                        <p>Archivo: ${filename}</p>
+                    `;
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>Error</h3>
+                        <p>${result.message}</p>
+                        <pre>${JSON.stringify(result.error, null, 2)}</pre>
+                    `;
+                    resultDiv.className = 'result error';
+                }
+                
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>Error</h3>
+                    <p>${error.message}</p>
+                `;
+                resultDiv.className = 'result error';
+                resultDiv.style.display = 'block';
             }
         });
     </script>
